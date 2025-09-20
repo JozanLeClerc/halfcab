@@ -49,14 +49,107 @@
  * the main
  */
 
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <termios.h>
+#include <unistd.h>
+
+#include "c_defines.h"
+
+static char
+param_esp_com
+(int fd,
+ const char prog_name[])
+{
+	struct termios tty;
+
+	if (tcgetattr(fd, &tty) != 0) {
+		dprintf(
+			STDERR_FILENO,
+			"%s: %s: %s\n",
+			prog_name,
+			"tcgetattr error with esp",
+			strerror(errno)
+		);
+		return (1);
+	}
+	cfsetospeed(&tty, B115200);
+	cfsetispeed(&tty, B115200);
+	tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8; /* 8-bit chars */
+	tty.c_iflag &= ~IGNBRK;         /* disable break processing */
+	tty.c_lflag = 0;                /* no signaling chars, no echo, */
+	tty.c_oflag = 0;                /* no remapping, no delays */
+	tty.c_cc[VMIN] = 1;             /* read doesn't block */
+	tty.c_cc[VTIME] = 5;            /* 0.5 seconds read timeout */
+	tty.c_iflag &= ~(IXON | IXOFF | IXANY); /* shut off xon/xoff ctrl */
+	tty.c_cflag |= (CLOCAL | CREAD);/* ignore modem controls, enable reading */
+	tty.c_cflag &= ~(PARENB | PARODD);      /* no parity */
+	tty.c_cflag &= ~CSTOPB;         /* 1 stop bit */
+	tty.c_cflag &= ~CRTSCTS;        /* no hardware flow control */
+	if(tcsetattr(fd, TCSANOW, &tty) != 0) {
+		dprintf(
+			STDERR_FILENO,
+			"%s: %s: %s\n",
+			prog_name,
+			"tcgetattr error with esp",
+			strerror(errno)
+		);
+		return (1);
+	}
+	return (0);
+}
+
+static int
+open_esp(const char prog_name[])
+{
+	int fd;
+
+	fd = open(PORT_NAME, O_WRONLY | O_NOCTTY | O_SYNC);
+	if (fd < 0) {
+		dprintf(
+			STDERR_FILENO,
+			"%s: %s: %s\n",
+			prog_name,
+			"error opening esp",
+			strerror(errno)
+		);
+		return (-1);
+	}
+	return (fd);
+}
 
 int
 main
 (int		 argc,
  const char* argv[])
 {
-	(void)argc;
-	(void)argv;
+	const char* prog_name = argv[0];
+	int fd;
+	const unsigned char com = 0xff;
+/* 	const unsigned char data[2] = { 0xfe, 0x00 }; */
+	/* unsigned char rgb[3];
+	unsigned char i; */
+
+	fd = open_esp(prog_name);
+	if (fd < 0) {
+		return (EXIT_FAILURE);
+	}
+	if (param_esp_com(fd, prog_name) != 0) {
+		close(fd);
+		return (EXIT_FAILURE);
+	}
+	if (argc < 4) {
+		write(fd, &com, 1 * sizeof(unsigned char));
+	} else {
+		/* i = 1;
+		while (i < 4) {
+			rgb[i] = atoi(argv[i]);
+			i++;
+		} */
+	}
+	close(fd);
 	return (EXIT_SUCCESS);
 }

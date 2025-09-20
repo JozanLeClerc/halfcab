@@ -42,87 +42,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * halfcab: esp/halfcab/halfcab.ino
- * Sat, 20 Sep 2025 00:17:38 +0200
+ * halfcab: src/c_defines.h
+ * Sat, 20 Sep 2025 17:24:52 +0200
  * joe <rbo@gmx.us>
- *
- * this is going straight to the esp
  */
 
-#include <FastLED.h>
+#ifndef __C_DEFINES_H__
+#define __C_DEFINES_H__
 
-#include "c_defines.h"
+#define PORT_NAME "/dev/ttyUSB0"
+#define PROGNAME "hc"
 
-CRGB leds[NUM_LEDS];
+#define DATA_PIN    D2
+#define NUM_LEDS    60
+#define BRIGHTNESS  254
+#define LED_TYPE    WS2812B
+#define COLOR_ORDER GRB
 
-void
-fill(CRGB color)
-{
-    uint8_t i;
+#define BLACK CRGB(0, 0, 0)
+#define RED   CRGB(255, 0, 0)
+#define GREEN CRGB(0, 255, 0)
+#define BLUE  CRGB(0, 0, 255)
+#define GRUV  CRGB(255, 80, 0)
 
-    i = 0;
-    while (i < NUM_LEDS) {
-        leds[i] = color;
-        i++;
-    }
-    FastLED.show();
-}
+enum colors_e {
+    R,
+    G,
+    B
+};
 
-void
-blink(void)
-{
-    fill(RED);
-    delay(60);
-    fill(BLACK);
-    delay(60);
-    fill(RED);
-    delay(60);
-    fill(BLACK);
-    delay(60);
-    fill(RED);
-    delay(60);
-    fill(BLACK);
-    delay(1000);
-}
-
-void
-plain(void)
-{
-    fill(GRUV);
-}
-
-void
-setup(void)
-{
-    Serial.begin(115200);
-
-    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-    FastLED.setBrightness(BRIGHTNESS);
-    fill(BLACK);
-    blink();
-}
-
-void
-loop(void)
-{
-    uint8_t i;
-    uint8_t com;
-
-    com = 0;
-    while (Serial.available() <= 0) {
-        /* empty */
-    }
-    com = Serial.read();
-    if (com == 0xff) {
-        plain();
-        return;
-    } else {
-        i = 0;
-        while (i < NUM_LEDS) {
-            leds[i] = GREEN;
-            i++;
-        }
-        FastLED.show();
-    }
-    delay(10);
-}
+#endif /* __C_DEFINES_H__ */

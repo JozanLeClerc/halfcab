@@ -16,7 +16,7 @@
 #
 # GNU Makefile
 
-default: debug
+default: run
 
 SHELL		:= /bin/sh
 OS			 = $(shell /usr/bin/uname)
@@ -35,8 +35,11 @@ ESP_NAME	 = halfcab.ino
 
 SRC_NAME	 = c_halfcab
 
+INC_NAME	 = c_defines
+
 SRCS		 = $(addprefix ${SRC_DIR}, $(addsuffix .c, ${SRC_NAME}))
 INCS		 = $(addprefix ${SRC_DIR}, $(addsuffix .h, ${SRC_NAME}))
+INCS		+= $(addprefix ${SRC_DIR}, $(addsuffix .h, ${INC_NAME}))
 OBJS		 = $(patsubst ${SRC_DIR}%.c, ${OBJ_DIR}%.c.o, ${SRCS})
 
 ARDUINO		 = arduino-cli
@@ -49,9 +52,9 @@ CFLAGS		+= -pedantic
 CFLAGS		+= -march=haswell
 CFLAGS		+= -O2
 CFLAGS		+= -pipe
-# ifeq (${OS}, Linux)
-# CFLAGS		+= -D_GNU_SOURCE
-# endif
+ifeq (${OS}, Linux)
+CFLAGS		+= -D_GNU_SOURCE
+endif
 
 ifeq (${OS}, Linux)
 CINCS		 = -isystem /usr/include
@@ -72,18 +75,18 @@ ${TRG_DIR}${TARGET}:	${OBJ_DIR} ${OBJS}
 
 debug: CFLAGS += -O0
 debug: CFLAGS += -g3
-debug: all
+debug: ${TRG_DIR}${TARGET}
 
 asan: CFLAGS += -O0
 asan: CFLAGS += -g3
 asan: CFLAGS += -fsanitize=address
-asan: all
+asan: ${TRG_DIR}${TARGET}
 
 clean:
 	${RM} ${OBJS} vgcore.* ${TARGET}.core ${TARGET} ${OBJ_DIR}
 
 esp:
-	${ARDUINO} compile -v -j8 --warnings all --fqbn ${ESP_FQBN} ${SRC_DIR}${ESP_DIR}
+	${ARDUINO} compile -v -j8 --warnings all --fqbn ${ESP_FQBN} --build-property build.extra_flags=-I${SRC_DIR} ${SRC_DIR}${ESP_DIR}
 	${ARDUINO} upload -p ${ESP_DEV} --fqbn ${ESP_FQBN} ${SRC_DIR}${ESP_DIR}
 
 attach:
@@ -97,4 +100,4 @@ all: esp ${TRG_DIR}${TARGET}
 run: debug
 	${TRG_DIR}${TARGET}
 
-.PHONY: esp attach mon hc
+.PHONY: esp attach mon hc clean asan debug all run
