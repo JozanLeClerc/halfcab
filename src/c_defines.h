@@ -65,10 +65,4 @@
 #define BLUE  CRGB(0, 0, 255)
 #define GRUV  CRGB(255, 80, 0)
 
-enum colors_e {
-    R,
-    G,
-    B
-};
-
 #endif /* __C_DEFINES_H__ */

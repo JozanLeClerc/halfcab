@@ -88,7 +88,25 @@ blink(void)
 void
 plain(void)
 {
-    fill(GRUV);
+    CRGB color;
+    byte r;
+    byte g;
+    byte b;
+
+    color = BLACK;
+    while (Serial.available() <= 0) {
+        /* empty */
+    }
+    color.r = Serial.read();
+    while (Serial.available() <= 0) {
+        /* empty */
+    }
+    color.g = Serial.read();
+    while (Serial.available() <= 0) {
+        /* empty */
+    }
+    color.b = Serial.read();
+    fill(color);
 }
 
 void
@@ -119,7 +137,7 @@ loop(void)
     } else {
         i = 0;
         while (i < NUM_LEDS) {
-            leds[i] = GREEN;
+            leds[i] = RED;
             i++;
         }
         FastLED.show();

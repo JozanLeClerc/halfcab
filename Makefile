@@ -40,7 +40,7 @@ INC_NAME	 = c_defines
 SRCS		 = $(addprefix ${SRC_DIR}, $(addsuffix .c, ${SRC_NAME}))
 INCS		 = $(addprefix ${SRC_DIR}, $(addsuffix .h, ${SRC_NAME}))
 INCS		+= $(addprefix ${SRC_DIR}, $(addsuffix .h, ${INC_NAME}))
-OBJS		 = $(patsubst ${SRC_DIR}%.c, ${OBJ_DIR}%.c.o, ${SRCS})
+OBJS		 = $(patsubst  ${SRC_DIR}%.c, ${OBJ_DIR}%.c.o, ${SRCS})
 
 ARDUINO		 = arduino-cli
 CC			 = cc

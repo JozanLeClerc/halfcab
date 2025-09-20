@@ -66,6 +66,7 @@ param_esp_com
 {
 	struct termios tty;
 
+	bzero(&tty, sizeof(tty));
 	if (tcgetattr(fd, &tty) != 0) {
 		dprintf(
 			STDERR_FILENO,
@@ -85,7 +86,7 @@ param_esp_com
 	tty.c_cc[VMIN] = 1;             /* read doesn't block */
 	tty.c_cc[VTIME] = 5;            /* 0.5 seconds read timeout */
 	tty.c_iflag &= ~(IXON | IXOFF | IXANY); /* shut off xon/xoff ctrl */
-	tty.c_cflag |= (CLOCAL | CREAD);/* ignore modem controls, enable reading */
+	tty.c_cflag |= (CLOCAL | CREAD); /* ignore modem controls, enable reading */
 	tty.c_cflag &= ~(PARENB | PARODD);      /* no parity */
 	tty.c_cflag &= ~CSTOPB;         /* 1 stop bit */
 	tty.c_cflag &= ~CRTSCTS;        /* no hardware flow control */
@@ -128,10 +129,9 @@ main
 {
 	const char* prog_name = argv[0];
 	int fd;
-	const unsigned char com = 0xff;
+	unsigned char com[4];
+	unsigned char i;
 /* 	const unsigned char data[2] = { 0xfe, 0x00 }; */
-	/* unsigned char rgb[3];
-	unsigned char i; */
 
 	fd = open_esp(prog_name);
 	if (fd < 0) {
@@ -142,13 +142,16 @@ main
 		return (EXIT_FAILURE);
 	}
 	if (argc < 4) {
+		com[0] = 0xfe;
 		write(fd, &com, 1 * sizeof(unsigned char));
 	} else {
-		/* i = 1;
+		com[0] = 0xff;
+		i = 1;
 		while (i < 4) {
-			rgb[i] = atoi(argv[i]);
+			com[i] = atoi(argv[i]);
 			i++;
-		} */
+		}
+		write(fd, &com, 4 * sizeof(unsigned char));
 	}
 	close(fd);
 	return (EXIT_SUCCESS);
