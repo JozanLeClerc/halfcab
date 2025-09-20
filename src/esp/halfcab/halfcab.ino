@@ -42,7 +42,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * halfcab: eps/halfcab.ino
+ * halfcab: esp/halfcab/halfcab.ino
  * Sat, 20 Sep 2025 00:17:38 +0200
  * joe <rbo@gmx.us>
  *
