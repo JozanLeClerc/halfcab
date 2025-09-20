@@ -57,44 +57,83 @@
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
+enum colors_e {
+    R,
+    G,
+    B
+};
+
 #define BLACK CRGB(0, 0, 0)
 #define RED   CRGB(255, 0, 0)
+#define GREEN CRGB(0, 255, 0)
+#define BLUE  CRGB(0, 0, 255)
 #define GRUV  CRGB(255, 80, 0)
 
 CRGB leds[NUM_LEDS];
 
 void
-setup(void)
+fill(CRGB color)
 {
     uint8_t i;
 
-    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-    FastLED.setBrightness(BRIGHTNESS);
-    FastLED.clear();
-    FastLED.show();
     i = 0;
     while (i < NUM_LEDS) {
-        leds[i] = GRUV;
+        leds[i] = color;
         i++;
     }
     FastLED.show();
-    // delay(50);
-    // while (i < 255) {
-    //     FastLED.setBrightness(i);
-    //     FastLED.show();
-    //     delay(100);
-    //     i += 10;
-    // }
-    // i = 0;
-    // while (i < NUM_LEDS) {
-    //     leds[i] = BLACK;
-    //     i++;
-    // }
-    // FastLED.show();
+}
+
+void
+blink(void)
+{
+    fill(BLUE);
+    delay(100);
+    fill(BLACK);
+    delay(100);
+    fill(BLUE);
+    delay(100);
+    fill(BLACK);
+    delay(1000);
+}
+
+void
+plain(void)
+{
+}
+
+void
+setup(void)
+{
+    Serial.begin(115200);
+
+    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+    FastLED.setBrightness(BRIGHTNESS);
+    fill(BLACK);
 }
 
 void
 loop(void)
 {
+    uint8_t i;
+    uint8_t com;
+
+    blink();
+    com = 0;
+    while (Serial.available() <= 0) {
+        /* empty */
+    }
+    com = Serial.read();
+    if (com == 0xff) {
+        plain();
+        return;
+    } else {
+        i = 0;
+        while (i < NUM_LEDS) {
+            leds[i] = GREEN;
+            i++;
+        }
+        FastLED.show();
+    }
     delay(10);
 }
