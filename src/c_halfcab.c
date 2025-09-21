@@ -129,9 +129,9 @@ main
 {
 	const char* prog_name = argv[0];
 	int fd;
+	int i;
 	unsigned char com[4];
-	unsigned char i;
-/* 	const unsigned char data[2] = { 0xfe, 0x00 }; */
+	unsigned char leds[NUM_LEDS * 3];
 
 	fd = open_esp(prog_name);
 	if (fd < 0) {
@@ -143,7 +143,16 @@ main
 	}
 	if (argc < 4) {
 		com[0] = 0xfe;
+		i = 0;
+		while (i < NUM_LEDS * 3) {
+			leds[i + 0] = 0x00;
+			leds[i + 1] = 0xff;
+			leds[i + 2] = 0x00;
+/* 			memset(leds + i, *com + 1, 3 * sizeof(unsigned char)); */
+			i += 3;
+		}
 		write(fd, &com, 1 * sizeof(unsigned char));
+		write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
 	} else {
 		com[0] = 0xff;
 		i = 1;
