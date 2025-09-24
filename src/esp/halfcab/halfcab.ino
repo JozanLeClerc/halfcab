@@ -55,6 +55,15 @@
 
 CRGB leds[NUM_LEDS];
 
+byte
+read_byte()
+{
+    while (Serial.available() <= 0) {
+        /* empty */
+    }
+    return (Serial.read());
+}
+
 void
 fill(CRGB color)
 {
@@ -106,29 +115,20 @@ plain(void)
     fill(color);
 }
 
-// void
-// dynamic(void)
-// {
-//     uint8_t i;
-//
-//     i = 0;
-//     while (i < NUM_LEDS) {
-//         while (Serial.available() <= 0) {
-//             /* empty */
-//         }
-//         leds[i].r = Serial.read();
-//         while (Serial.available() <= 0) {
-//             /* empty */
-//         }
-//         leds[i].g = Serial.read();
-//         while (Serial.available() <= 0) {
-//             /* empty */
-//         }
-//         leds[i].b = Serial.read();
-//         i++;
-//     }
-//     FastLED.show();
-// }
+void
+dynamic(void)
+{
+    uint8_t i;
+
+    i = 0;
+    while (i < NUM_LEDS) {
+        leds[i].r = read_byte();
+        leds[i].g = read_byte();
+        leds[i].b = read_byte();
+        i++;
+    }
+    FastLED.show();
+}
 
 void
 setup(void)
@@ -147,13 +147,12 @@ loop(void)
     uint8_t com;
 
     com = 0;
-    while (Serial.available() <= 0) {
-        /* empty */
-    }
-    com = Serial.read();
+    com = read_byte();
     if (com == 0xff) {
         plain();
         return;
+    } else if (com == 0xfe) {
+        dynamic();
     } else {
         fill(BLUE);
     }

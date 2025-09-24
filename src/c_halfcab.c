@@ -143,20 +143,16 @@ main
 	}
 	if (argc < 4) {
 		com[0] = 0xfe;
+		com[1] = 0x00;
+		com[2] = 0xaa;
+		com[3] = 0xaa;
 		i = 0;
 		while (i < NUM_LEDS * 3) {
-			leds[i + 0] = 0x00;
-			leds[i + 1] = 0xff;
-			leds[i + 2] = 0x00;
-			leds[i + 3] = 0xff;
-			leds[i + 4] = 0x00;
-			leds[i + 5] = 0x00;
-/* 			memset(leds + i, *com + 1, 3 * sizeof(unsigned char)); */
-			i += 6;
+			memcpy(leds + i, com + 1, 3 * sizeof(unsigned char));
+			i += 3;
 		}
 		write(fd, &com, 1 * sizeof(unsigned char));
-		(void)leds;
-/* 		write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char)); */
+		write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
 	} else {
 		com[0] = 0xff;
 		i = 1;
