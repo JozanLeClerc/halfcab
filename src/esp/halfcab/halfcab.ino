@@ -100,18 +100,9 @@ plain(void)
     CRGB color;
 
     color = BLACK;
-    while (Serial.available() <= 0) {
-        /* empty */
-    }
-    color.r = Serial.read();
-    while (Serial.available() <= 0) {
-        /* empty */
-    }
-    color.g = Serial.read();
-    while (Serial.available() <= 0) {
-        /* empty */
-    }
-    color.b = Serial.read();
+    color.r = read_byte();
+    color.g = read_byte();
+    color.b = read_byte();
     fill(color);
 }
 
@@ -149,19 +140,10 @@ loop(void)
     com = 0;
     com = read_byte();
     if (com == 0xff) {
-        plain();
-        return;
-    } else if (com == 0xfe) {
         dynamic();
+    } else if (com == 0xfe) {
+        plain();
     } else {
         fill(BLUE);
     }
-
-
-
- // else if (com == 0xfe) {
- //        dynamic();
- //    }
-
-    delay(10);
 }

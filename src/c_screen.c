@@ -42,36 +42,71 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * halfcab: src/c_defines.h
- * Sat, 20 Sep 2025 17:24:52 +0200
+ * halfcab: src/c_screen.c
+ * Wed, 24 Sep 2025 20:29:26 +0200
  * joe <rbo@gmx.us>
  */
 
-#ifndef __C_DEFINES_H__
-#define __C_DEFINES_H__
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
-#define PORT_NAME    "/dev/ttyUSB0"
-#define SCREEN_W    2560
-#define SCREEN_H    1440
+#include "c_defines.h"
+#include "c_screen.h"
 
-#define DATA_PIN    D2
-#define NUM_LEDS    60
-#define BRIGHTNESS  254
-#define LED_TYPE    WS2812B
-#define COLOR_ORDER GRB
+static void
+fill_led
+(unsigned char leds[],
+ const int	i,
+ Display*	disp,
+ XImage*	img,
+ const int	min_x,
+ const int	max_x,
+ const int	min_y,
+ const int	max_y)
+{
+	XColor c;
 
-#define BLACK CRGB(0, 0, 0)
-#define RED   CRGB(255, 0, 0)
-#define GREEN CRGB(0, 255, 0)
-#define BLUE  CRGB(0, 0, 255)
-#define GRUV  CRGB(255, 80, 0)
+	(void)min_x;
+	(void)max_x;
+	(void)min_y;
+	(void)max_y;
+	c.pixel = XGetPixel(img, 0, 0);
+	XQueryColor(disp, DefaultColormap(disp, DefaultScreen(disp)), &c);
+	leds[i + 0] = c.red;
+	leds[i + 1] = c.green;
+	leds[i + 2] = c.blue;
+}
 
-#define VERT_PIXEL_GAP 0
-#define HORZ_PIXEL_GAP 5
+void
+c_get_screen_colors
+(unsigned char	leds[],
+ Display*		disp)
+{
+	XImage* img;
+	const int top_leds  = NUM_LEDS / 2;
+	const int side_leds	= NUM_LEDS / 4;
+	const int top_px_per_led  = SCREEN_W / top_leds;
+	const int side_px_per_led = SCREEN_H / side_leds;
+	int i;
 
-enum bool_e {
-	FALSE,
-	TRUE
-};
-
-#endif /* __C_DEFINES_H__ */
+	img = XGetImage(
+		disp, RootWindow(disp, DefaultScreen(disp)),
+		1920, 0,
+		SCREEN_W, SCREEN_H,
+		AllPlanes, ZPixmap
+		);
+	if (img == NULL) {
+		return;
+	}
+	i = 0;
+	fill_led(
+		leds, i,
+		disp, img,
+		0, side_px_per_led,
+		VERT_PIXEL_GAP + (0 * side_px_per_led),
+		VERT_PIXEL_GAP + ((0 + 1) * side_px_per_led)
+		);
+	(void)top_px_per_led;
+	XDestroyImage(img);
+}

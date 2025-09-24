@@ -42,36 +42,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * halfcab: src/c_defines.h
- * Sat, 20 Sep 2025 17:24:52 +0200
+ * halfcab: src/c_screen.h
+ * Wed, 24 Sep 2025 20:29:35 +0200
  * joe <rbo@gmx.us>
  */
 
-#ifndef __C_DEFINES_H__
-#define __C_DEFINES_H__
+#ifndef __C_SCREEN_H__
+#define __C_SCREEN_H__
 
-#define PORT_NAME    "/dev/ttyUSB0"
-#define SCREEN_W    2560
-#define SCREEN_H    1440
+#include <X11/Xlib.h>
 
-#define DATA_PIN    D2
-#define NUM_LEDS    60
-#define BRIGHTNESS  254
-#define LED_TYPE    WS2812B
-#define COLOR_ORDER GRB
+void c_get_screen_colors(unsigned char[], Display*);
 
-#define BLACK CRGB(0, 0, 0)
-#define RED   CRGB(255, 0, 0)
-#define GREEN CRGB(0, 255, 0)
-#define BLUE  CRGB(0, 0, 255)
-#define GRUV  CRGB(255, 80, 0)
-
-#define VERT_PIXEL_GAP 0
-#define HORZ_PIXEL_GAP 5
-
-enum bool_e {
-	FALSE,
-	TRUE
-};
-
-#endif /* __C_DEFINES_H__ */
+#endif /* __C_SCREEN_H__ */

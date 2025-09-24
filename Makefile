@@ -34,6 +34,7 @@ TARGET		 = hc
 ESP_NAME	 = halfcab.ino
 
 SRC_NAME	 = c_halfcab
+SRC_NAME	+= c_screen
 
 INC_NAME	 = c_defines
 
@@ -55,6 +56,8 @@ CFLAGS		+= -pipe
 ifeq (${OS}, Linux)
 CFLAGS		+= -D_GNU_SOURCE
 endif
+
+LDFLAGS		 = -lX11
 
 ifeq (${OS}, Linux)
 CINCS		 = -isystem /usr/include

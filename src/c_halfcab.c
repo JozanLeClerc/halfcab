@@ -51,13 +51,17 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
 
+#include <X11/Xlib.h>
+
 #include "c_defines.h"
+#include "c_screen.h"
 
 static char
 param_esp_com
@@ -122,12 +126,23 @@ open_esp(const char prog_name[])
 	return (fd);
 }
 
+volatile sig_atomic_t end = 0;
+
+static void
+handle_sigterm(int signum)
+{
+	(void)signum;
+	end = TRUE;
+}
+
 int
 main
 (int		 argc,
  const char* argv[])
 {
 	const char* prog_name = argv[0];
+	struct sigaction act;
+	Display* disp;
 	int fd;
 	int i;
 	unsigned char com[4];
@@ -142,19 +157,31 @@ main
 		return (EXIT_FAILURE);
 	}
 	if (argc < 4) {
-		com[0] = 0xfe;
-		com[1] = 0x00;
-		com[2] = 0xaa;
-		com[3] = 0xaa;
-		i = 0;
-		while (i < NUM_LEDS * 3) {
-			memcpy(leds + i, com + 1, 3 * sizeof(unsigned char));
-			i += 3;
-		}
-		write(fd, &com, 1 * sizeof(unsigned char));
-		write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
-	} else {
 		com[0] = 0xff;
+		bzero(leds, (NUM_LEDS * 3) * sizeof(unsigned char));
+		disp = XOpenDisplay(NULL);
+		if (disp == NULL) {
+			i = 0;
+			while (i < NUM_LEDS * 3) {
+				leds[i] = 0xff;
+				i += 3;
+			}
+			write(fd, &com, 1 * sizeof(unsigned char));
+			write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
+			return (EXIT_FAILURE);
+		}
+		bzero(&act, sizeof(struct sigaction));
+		act.sa_handler = handle_sigterm;
+		sigaction(SIGTERM, &act, NULL);
+		sigaction(SIGINT, &act, NULL);
+		while (end == FALSE) {
+			c_get_screen_colors(leds, disp);
+			write(fd, &com, 1 * sizeof(unsigned char));
+			write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
+		}
+		XCloseDisplay(disp);
+	} else {
+		com[0] = 0xfe;
 		i = 1;
 		while (i < 4) {
 			com[i] = atoi(argv[i]);
