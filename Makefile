@@ -43,7 +43,7 @@ INCS		 = $(addprefix ${SRC_DIR}, $(addsuffix .h, ${SRC_NAME}))
 INCS		+= $(addprefix ${SRC_DIR}, $(addsuffix .h, ${INC_NAME}))
 OBJS		 = $(patsubst  ${SRC_DIR}%.c, ${OBJ_DIR}%.c.o, ${SRCS})
 
-ARDUINO		 = arduino-cli
+ARDUINO		 = arduino-cli --config-file ${XDG_CONFIG_HOME}/arduino-cli/arduino-cli.yaml
 CC			 = cc
 CFLAGS		 = -std=c89
 CFLAGS		+= -Wall
