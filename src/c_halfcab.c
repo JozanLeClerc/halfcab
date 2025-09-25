@@ -145,6 +145,7 @@ main
 	Display* disp;
 	int fd;
 	int i;
+	int ret;
 	unsigned char com[4];
 	unsigned char leds[NUM_LEDS * 3];
 
@@ -166,8 +167,8 @@ main
 				leds[i] = 0xff;
 				i += 3;
 			}
-			write(fd, &com, 1 * sizeof(unsigned char));
-			write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
+			ret = write(fd, &com, 1 * sizeof(unsigned char));
+			ret = write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
 			return (EXIT_FAILURE);
 		}
 		bzero(&act, sizeof(struct sigaction));
@@ -176,8 +177,8 @@ main
 		sigaction(SIGINT, &act, NULL);
 		while (end == FALSE) {
 			c_get_screen_colors(leds, disp);
-			write(fd, &com, 1 * sizeof(unsigned char));
-			write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
+			ret = write(fd, &com, 1 * sizeof(unsigned char));
+			ret = write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
 		}
 		XCloseDisplay(disp);
 	} else {
@@ -187,8 +188,9 @@ main
 			com[i] = atoi(argv[i]);
 			i++;
 		}
-		write(fd, &com, 4 * sizeof(unsigned char));
+		ret = write(fd, &com, 4 * sizeof(unsigned char));
 	}
 	close(fd);
+	(void)ret;
 	return (EXIT_SUCCESS);
 }
