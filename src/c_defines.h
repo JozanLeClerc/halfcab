@@ -66,8 +66,7 @@
 #define BLUE  CRGB(0, 0, 255)
 #define GRUV  CRGB(255, 80, 0)
 
-#define VERT_PIXEL_GAP 0
-#define HORZ_PIXEL_GAP 5
+#define RANDOM_PX_COUNT 7
 
 enum bool_e {
 	FALSE,

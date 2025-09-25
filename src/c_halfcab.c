@@ -56,6 +56,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <X11/Xlib.h>
@@ -64,7 +65,7 @@
 #include "c_screen.h"
 
 static char
-param_esp_com
+c_param_esp_com
 (int fd,
  const char prog_name[])
 {
@@ -108,7 +109,7 @@ param_esp_com
 }
 
 static int
-open_esp(const char prog_name[])
+c_open_esp(const char prog_name[])
 {
 	int fd;
 
@@ -135,62 +136,83 @@ handle_sigterm(int signum)
 	end = TRUE;
 }
 
+static int
+c_screen_colors(int fd)
+{
+	struct sigaction act;
+	Display* disp;
+	unsigned char com[(NUM_LEDS * 3) + 1];
+	unsigned int t;
+	int i;
+
+	bzero(com, (NUM_LEDS * 3) * sizeof(unsigned char));
+	com[0] = 0xff;
+	disp = XOpenDisplay(NULL);
+	if (disp == NULL) {
+		i = 1;
+		while (i < (NUM_LEDS * 3) + 1) {
+			com[i] = 0xff;
+			i += 3;
+		}
+		write(fd, &com, ((NUM_LEDS * 3) + 1) * sizeof(unsigned char));
+		return (1);
+	}
+	bzero(&act, sizeof(struct sigaction));
+	t = time(NULL);
+	act.sa_handler = handle_sigterm;
+	sigaction(SIGTERM, &act, NULL);
+	sigaction(SIGINT, &act, NULL);
+	while (end == FALSE) {
+		c_get_screen_colors(com + 1, disp, t);
+		write(fd, &com, ((NUM_LEDS * 3) + 1) * sizeof(unsigned char));
+	}
+	XCloseDisplay(disp);
+	return (0);
+}
+
+static void
+c_single_color
+(int		 fd,
+ const char* argv[])
+{
+	unsigned char com[4];
+	int i;
+
+	com[0] = 0xfe;
+	i = 1;
+	while (i < 4) {
+		com[i] = atoi(argv[i]);
+		i++;
+	}
+	write(fd, &com, 4 * sizeof(unsigned char));
+}
+
 int
 main
 (int		 argc,
  const char* argv[])
 {
 	const char* prog_name = argv[0];
-	struct sigaction act;
-	Display* disp;
 	int fd;
-	int i;
 	int ret;
-	unsigned char com[4];
-	unsigned char leds[NUM_LEDS * 3];
 
-	fd = open_esp(prog_name);
+	fd = c_open_esp(prog_name);
 	if (fd < 0) {
 		return (EXIT_FAILURE);
 	}
-	if (param_esp_com(fd, prog_name) != 0) {
+	if (c_param_esp_com(fd, prog_name) != 0) {
 		close(fd);
 		return (EXIT_FAILURE);
 	}
 	if (argc < 4) {
-		com[0] = 0xff;
-		bzero(leds, (NUM_LEDS * 3) * sizeof(unsigned char));
-		disp = XOpenDisplay(NULL);
-		if (disp == NULL) {
-			i = 0;
-			while (i < NUM_LEDS * 3) {
-				leds[i] = 0xff;
-				i += 3;
-			}
-			ret = write(fd, &com, 1 * sizeof(unsigned char));
-			ret = write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
+		ret = c_screen_colors(fd);
+		if (ret != 0) {
+			close(fd);
 			return (EXIT_FAILURE);
 		}
-		bzero(&act, sizeof(struct sigaction));
-		act.sa_handler = handle_sigterm;
-		sigaction(SIGTERM, &act, NULL);
-		sigaction(SIGINT, &act, NULL);
-		while (end == FALSE) {
-			c_get_screen_colors(leds, disp);
-			ret = write(fd, &com, 1 * sizeof(unsigned char));
-			ret = write(fd, &leds, (NUM_LEDS * 3) * sizeof(unsigned char));
-		}
-		XCloseDisplay(disp);
 	} else {
-		com[0] = 0xfe;
-		i = 1;
-		while (i < 4) {
-			com[i] = atoi(argv[i]);
-			i++;
-		}
-		ret = write(fd, &com, 4 * sizeof(unsigned char));
+		c_single_color(fd, argv);
 	}
 	close(fd);
-	(void)ret;
 	return (EXIT_SUCCESS);
 }

@@ -16,7 +16,7 @@
 #
 # GNU Makefile
 
-default: run
+default: debug
 
 SHELL		:= /bin/sh
 OS			 = $(shell /usr/bin/uname)

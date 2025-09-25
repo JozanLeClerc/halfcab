@@ -52,6 +52,6 @@
 
 #include <X11/Xlib.h>
 
-void c_get_screen_colors(unsigned char[], Display*);
+void c_get_screen_colors(unsigned char[], Display*, unsigned int);
 
 #endif /* __C_SCREEN_H__ */

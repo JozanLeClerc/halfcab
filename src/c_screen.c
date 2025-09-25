@@ -47,6 +47,9 @@
  * joe <rbo@gmx.us>
  */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -54,42 +57,65 @@
 #include "c_defines.h"
 #include "c_screen.h"
 
+static int
+c_rand
+(short min,
+ short max)
+{
+	return min + (rand() % (max - min));
+}
+
 static void
-fill_led
-(unsigned char leds[],
- const int	i,
- Display*	disp,
- XImage*	img,
- const int	min_x,
- const int	max_x,
- const int	min_y,
- const int	max_y)
+c_fill_led
+(unsigned char	leds[],
+ const int	 i,
+ Display*	 disp,
+ XImage*	 img,
+ const short x_min,
+ const short x_max,
+ const short y_min,
+ const short y_max)
 {
 	XColor c;
+	unsigned int total[3];
+	short j;
+	short x;
+	short y;
 
-	(void)min_x;
-	(void)max_x;
-	(void)min_y;
-	(void)max_y;
-	c.pixel = XGetPixel(img, 0, 0);
-	XQueryColor(disp, DefaultColormap(disp, DefaultScreen(disp)), &c);
-	leds[i + 0] = c.red;
-	leds[i + 1] = c.green;
-	leds[i + 2] = c.blue;
+	bzero(&total, 3 * sizeof(unsigned int));
+	j = 0;
+	while (j < RANDOM_PX_COUNT) {
+		x = c_rand(x_min, x_max);
+		y = c_rand(y_min, y_max);
+		j++;
+		c.pixel = XGetPixel(img, x, y);
+		XQueryColor(disp, DefaultColormap(disp, DefaultScreen(disp)), &c);
+		total[0] += c.red;
+		total[1] += c.green;
+		total[2] += c.blue;
+	}
+	j = 0;
+	while (j < 3) {
+		leds[i + j] = (total[j] / 256) / RANDOM_PX_COUNT;
+		j++;
+	}
 }
 
 void
 c_get_screen_colors
 (unsigned char	leds[],
- Display*		disp)
+ Display*		disp,
+ unsigned int	t)
 {
 	XImage* img;
-	const int top_leds  = NUM_LEDS / 2;
-	const int side_leds	= NUM_LEDS / 4;
-	const int top_px_per_led  = SCREEN_W / top_leds;
-	const int side_px_per_led = SCREEN_H / side_leds;
-	int i;
+	static const short top_leds		   = NUM_LEDS / 2;
+	static const short side_leds	   = NUM_LEDS / 4;
+	static const short top_px_per_led  = SCREEN_W / top_leds;
+	static const short side_px_per_led = SCREEN_H / side_leds;
+	short i;
+	short j;
 
+	srand(t);
 	img = XGetImage(
 		disp, RootWindow(disp, DefaultScreen(disp)),
 		1920, 0,
@@ -100,13 +126,38 @@ c_get_screen_colors
 		return;
 	}
 	i = 0;
-	fill_led(
-		leds, i,
-		disp, img,
-		0, side_px_per_led,
-		VERT_PIXEL_GAP + (0 * side_px_per_led),
-		VERT_PIXEL_GAP + ((0 + 1) * side_px_per_led)
-		);
-	(void)top_px_per_led;
+	j = 0;
+	while (j < side_leds) {
+		i = side_leds - j - 1;
+		c_fill_led(
+			leds, i * 3,
+			disp, img,
+			0, side_px_per_led,
+			j * side_px_per_led,
+			(j + 1) * side_px_per_led
+			);
+		j++;
+	}
+	i = 0;
+	while (i < top_leds) {
+		c_fill_led(
+			leds, (side_leds * 3) + (i * 3),
+			disp, img,
+			i * top_px_per_led,
+			(i + 1) * top_px_per_led,
+			0, top_px_per_led
+			);
+		i++;
+	}
+	i = 0;
+	while (i < side_leds) {
+		c_fill_led(
+			leds, (side_leds + top_leds + i) * 3,
+			disp, img,
+			SCREEN_W - side_px_per_led, SCREEN_W - 1,
+			i * side_px_per_led, (i + 1) * side_px_per_led
+			);
+		i++;
+	}
 	XDestroyImage(img);
 }
