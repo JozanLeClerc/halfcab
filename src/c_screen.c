@@ -96,7 +96,7 @@ c_fill_led
 	}
 	j = 0;
 	while (j < 3) {
-		leds[i + j] = (total[j] / 256) / RANDOM_PX_COUNT;
+		leds[i + j] = ((total[j] / 256) / RANDOM_PX_COUNT * 40) / 100;
 		j++;
 	}
 }
@@ -118,7 +118,7 @@ c_get_screen_colors
 	srand(t);
 	img = XGetImage(
 		disp, RootWindow(disp, DefaultScreen(disp)),
-		1920, 0,
+		START_X, 0,
 		SCREEN_W, SCREEN_H,
 		AllPlanes, ZPixmap
 		);
